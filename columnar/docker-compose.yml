@@ -1,0 +1,105 @@
+version: "3"
+services:
+  dev:
+    image: ubuntu:xenial
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+      - gitlocal:/gitlocal
+    entrypoint:
+      - /scripts/idle.sh 
+  dev1:
+    image: jr/column_dev
+    cap_add:
+        - SYS_PTRACE
+    ports:
+        - 3306:3306
+    environment:
+        - USER=root
+    links:
+        - dev2
+        - dev3
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+      - dblocal1:/usr/local/mariadb
+    entrypoint:
+      - /scripts/idle.sh 
+  dev2:
+    image: jr/column_dev
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+      - dblocal2:/usr/local/mariadb
+    entrypoint:
+      - /scripts/idle.sh 
+  dev3:
+    image: jr/column_dev
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+      - dblocal3:/usr/local/mariadb
+    entrypoint:
+      - /scripts/idle.sh 
+  compiler:
+    image: jr/colcomp
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+    entrypoint:
+      - /scripts/idle.sh 
+  dev4:
+    image: jr/column_dev_centos
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+      - dblocal4:/usr/local/mariadb
+    entrypoint:
+      - /scripts/idle.sh 
+  compiler:
+    image: jr/colcomp
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/junior/git:/git:rw
+      - /home/junior/docker:/docker:rw
+      - /home/junior/docker/scripts:/scripts:ro
+    entrypoint:
+      - /scripts/idle.sh 
+volumes:
+volumes:
+    gitlocal:    
+    gitlocal1:    
+    dblocal:
+    dblocal1:
+    dblocal2:
+    dblocal3:
+    dblocal4:
