@@ -9,4 +9,8 @@ ENV LANGUAGE ru_RU
 ENV LC_ALL ru_RU.UTF-8  
 RUN dpkg-reconfigure --frontend noninteractive locales
 ADD .vimrc /root/
-RUN echo "alias mkinstall='make -j4 && make -j4 install && /usr/local/mariadb/columnstore/bin/postConfigure'" >> /root/.bashrc
+#ADD .ssh /root/
+RUN echo '. /usr/local/mariadb/columnstore/bin/columnstoreAlias' >> /root/.bashrc
+RUN echo 'alias enable_log="for f in $(ma getprocessconfig | grep ProcessName | cut -d= -f2 | paste -s); do ma setprocessconfig $f pm LogFile on; done"' >> /root/.bashrc
+RUN echo "alias mkinstall=\"make -j8 && make -j8 install && /usr/local/mariadb/columnstore/bin/postConfigure\"" >> /root/.bashrc
+RUN echo 'alias reinstall="echo y | ma shut && make -j8 && make -j8 && echo -e \"1\n\n\n\n\" | /usr/local/mariadb/columnstore/bin/postConfigure"' >> /root/.bashrc

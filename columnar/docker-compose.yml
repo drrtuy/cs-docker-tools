@@ -7,9 +7,9 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
       - gitlocal:/gitlocal
     entrypoint:
       - /scripts/idle.sh 
@@ -25,10 +25,10 @@ services:
         - dev2
         - dev3
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
-      - dblocal1:/usr/local/mariadb
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+      #- dblocal1:/usr/local/mariadb
     entrypoint:
       - /scripts/idle.sh 
   dev2:
@@ -38,9 +38,9 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
       - dblocal2:/usr/local/mariadb
     entrypoint:
       - /scripts/idle.sh 
@@ -51,9 +51,9 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
       - dblocal3:/usr/local/mariadb
     entrypoint:
       - /scripts/idle.sh 
@@ -64,9 +64,9 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
     entrypoint:
       - /scripts/idle.sh 
   dev4:
@@ -76,9 +76,9 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
       - dblocal4:/usr/local/mariadb
     entrypoint:
       - /scripts/idle.sh 
@@ -89,17 +89,92 @@ services:
     environment:
         - USER=root
     volumes:
-      - /home/junior/git:/git:rw
-      - /home/junior/docker:/docker:rw
-      - /home/junior/docker/scripts:/scripts:ro
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
     entrypoint:
       - /scripts/idle.sh 
-volumes:
+  pm1:
+    image: jr/cs-general
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+      - pm1:/usr/local/mariadb/columnstore/data1
+    entrypoint:
+      - /scripts/idle.sh 
+  pm2:
+    image: jr/cs-general
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+      - pm2:/usr/local/mariadb/columnstore/data1
+    entrypoint:
+      - /scripts/idle.sh 
+  um1:
+    image: jr/cs-general
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+      - um1:/usr/local/mariadb/columnstore
+    entrypoint:
+      - /scripts/idle.sh 
+  single1:
+    image: jr/cs-base
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+  single2:
+    image: jr/cs-base
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+  single3:
+    image: jr/cs-base
+    cap_add:
+        - SYS_PTRACE
+    environment:
+        - USER=root
+    volumes:
+      - /home/drrtuy/git:/git:rw
+      - /home/drrtuy/docker:/docker:rw
+      - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+        #- s1:/usr/local/mariadb/columnstore
+        #entrypoint:
+        # - /scripts/idle.sh 
 volumes:
     gitlocal:    
     gitlocal1:    
     dblocal:
-    dblocal1:
+    #dblocal1:
     dblocal2:
     dblocal3:
     dblocal4:
+    pm1:
+    pm2:
+    um1:
+            #s1:
