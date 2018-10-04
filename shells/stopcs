@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld'
+PROGS+=' WriteEngineServer'
+
+HOME_=/usr/local
+
+$HOME_/mariadb/columnstore/bin/save_brm
+
+echo Sending SIGTERM
+kill $(pidof $PROGS) > /dev/null
+sleep 3
+echo Sending SIGKILL
+kill -9 $(pidof $PROGS) > /dev/null
+
+echo Clearing SHM
+$HOME_/mariadb/columnstore/bin/clearShm
