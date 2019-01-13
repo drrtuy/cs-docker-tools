@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld'
+PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld WriteEngineServer'
 PROGS+=' WriteEngineServer'
 
 HOME_=/usr/local

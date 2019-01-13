@@ -7,6 +7,5 @@ ENV LANGUAGE ru_RU
 ENV LC_ALL ru_RU.UTF-8  
 RUN yum -y groupinstall "Development Tools" \
     && yum -y install bison ncurses-devel readline-devel perl-devel openssl-devel cmake libxml2-devel gperf libaio-devel libevent-devel python-devel ruby-devel tree wget pam-devel snappy-devel libicu \
-    && yum -y install vim wget strace ltrace gdb  rsyslog net-tools openssh-server expect \
-    && boost perl-DBI
+    && yum -y install vim wget strace ltrace gdb  rsyslog net-tools openssh-server expect boost perl-DBI libicu
 ADD .vimrc /root/
