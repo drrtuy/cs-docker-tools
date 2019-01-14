@@ -12,7 +12,7 @@ extern "C" {
 /**
  * Initializes the library. Should be called before all other functions.
  */
-void edx_open();
+void edx_open(int);
 
 /**
  * De-initializes the library. Should be called after all other functions.

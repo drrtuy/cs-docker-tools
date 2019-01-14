@@ -404,10 +404,12 @@ int int_to_buffer(unsigned value, int pos);
 int long_long_to_buffer(unsigned long long value, int pos);
 int number_opened = 0;
 
-void edx_open() {
+void edx_open(int id) {
     if (++number_opened == 1) {
         //edx_open_input();
-        ouf = fopen(OUTPUT_FILE_NAME, "wt");
+        char fname[14];
+        sprintf(fname, "output%d.txt", id);
+        ouf = fopen(fname, "wt");
         if (ouf == NULL) {
             perror(OUTPUT_FILE_OPEN_ERROR);
             exit(1);
