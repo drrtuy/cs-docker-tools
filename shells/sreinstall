@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# This script allows to fast recompile, reinstall
+# and restart  MCS when it was initially compiled 
+# with SKIP_OAM_INIT=1
+# The script doesn't call cmake so one must run
+# it manually
+
+# To choose b/w multiply engine MSC directories
+MCS_SC_ID=$1
+
+MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
+MCS_INSTALL_PATH=/usr/local/mariadb/columnstore
+MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SC_ID}-mariadb-columnstore-engine
+TMP_PATH=/tmp
+CPUS=$(getconf _NPROCESSORS_ONLN)
+
+# Script
+$MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
+
+# Backup the config file
+cp $MCS_INSTALL_PATH/etc/Columnstore.xml $TMP_PATH/Columnstore.xml 
+#pushd . 
+# Run the next step only of previous was successful
+cd $MCS_SOURCE_PATH && make -j$CPUS install && cp $TMP_PATH/Columnstore.xml $MCS_INSTALL_PATH/etc/Columnstore.xml
+
+# Script
+$MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+
+#popd

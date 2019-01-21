@@ -1,11 +1,14 @@
 #!/bin/bash
 
+# This script gracefully stops MCS when it was compiles
+# with SKIP_OAM_INIT=1
+
 PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld WriteEngineServer'
 PROGS+=' WriteEngineServer'
 
-HOME_=/usr/local
+MCS_INSTALL_DIR=/usr/local/mariadb/columnstore
 
-$HOME_/mariadb/columnstore/bin/save_brm
+$MCS_INSTALL_DIR/bin/save_brm
 
 echo Sending SIGTERM
 kill $(pidof $PROGS) > /dev/null
@@ -14,4 +17,6 @@ echo Sending SIGKILL
 kill -9 $(pidof $PROGS) > /dev/null
 
 echo Clearing SHM
-$HOME_/mariadb/columnstore/bin/clearShm
+$MCS_INSTALL_DIR/bin/clearShm
+
+exit 0

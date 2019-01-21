@@ -22,14 +22,11 @@ services:
         - 3306:3306
     environment:
         - USER=root
-#    links:
-#        - dev2
-#        - dev3
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      #- dblocal1:/usr/local/mariadb
+      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw
     entrypoint:
       - /scripts/idle.sh 
   dev2:
@@ -82,7 +79,7 @@ services:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      #- dblocal4:/usr/local/mariadb
+      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/usr/local/mariadb:rw
     entrypoint:
       - /scripts/idle.sh
   dev5:
