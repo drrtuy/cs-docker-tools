@@ -79,7 +79,7 @@ services:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/usr/local/mariadb:rw
+     # - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/usr/local/mariadb:rw
     entrypoint:
       - /scripts/idle.sh
   dev5:
