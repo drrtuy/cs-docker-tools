@@ -14,7 +14,9 @@ MCS_INSTALL_PREFIX=/usr/local/mariadb
 MCS_INSTALL_PATH=$MCS_INSTALL_PREFIX/columnstore
 MCS_TMP_DIR=/tmp/columnstore_tmp_files
 MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
+TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
+MDB_CMAKE_FLAGS='-DWITHOUT_TOKUDB_STORAGE_ENGINE=1 -DWITHOUT_ROCKSDB_STORAGE_ENGINE=1'
 
 # script
 $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
@@ -23,8 +25,22 @@ rm -rf $MCS_TMP_DIR/*
 
 cd $MCS_SOURCE_PATH
 # The magic flag
+
+cat <<EOF > $TMP_PATH/export.sh
+#!/bin/sh
+
 export SKIP_OAM_INIT=1
-cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make install -j $CPUS && cd .. && make install -j $CPUS
+EOF
+
+. $TMP_PATH/export.sh
+
+rm -f $TMP_PATH/export.sh
+
+cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
+make -j $CPUS install && \
+cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE && make install -j $CPUS && \
+make install -j $CPUS
+
 cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml $MCS_INSTALL_PATH/etc/
 
 $MCS_INSTALL_PATH/bin/post-mysqld-install
