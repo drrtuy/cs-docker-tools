@@ -53,17 +53,21 @@ $MCS_INSTALL_BIN/PrimProc &> $LOG_PREFIX/primproc.log &
 echo PrimProc PID = $!
 sleep 1
 touch $LOG_PREFIX/exemgr.log && chmod 666 $LOG_PREFIX/exemgr.log
-$MCS_INSTALL_BIN/ExeMgr &> $LOG_PREFIX/exemgr.log &
+#$MCS_INSTALL_BIN/ExeMgr &> $LOG_PREFIX/exemgr.log &
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1 $MCS_INSTALL_BIN/ExeMgr &> $LOG_PREFIX/exemgr.log &
+#heaptrack $MCS_INSTALL_BIN/ExeMgr &> $LOG_PREFIX/exemgr.log &
+#valgrind --leak-check=full --xtree-memory=full --log-fd=9 9>$LOG_PREFIX/valgrind.log $MCS_INSTALL_BIN/ExeMgr &> $LOG_PREFIX/exemgr.log &
 
 # example of enabling profiling and leak detection in jemalloc.  jemalloc
 # needs to be built with --enable-prof for this to work
-#MALLOC_CONF=prof:true,prof_leak:true,zero:true LD_PRELOAD=$HOME_/lib/libjemalloc.so ExeMgr >& $HOME/exemgr.log &
+#MALLOC_CONF=prof:true,prof_leak:true,zero:true LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1 ExeMgr >& $HOME/exemgr.log &
 
 echo ExeMgr PID = $!
 touch $LOG_PREFIX/writeengineserver.log && chmod 666 $LOG_PREFIX/writeengineserver.log
-$MCS_INSTALL_BIN/WriteEngineServer &> $LOG_PREFIX/writeengineserver.log &
+#heaptrack $MCS_INSTALL_BIN/WriteEngineServer &> $LOG_PREFIX/writeengineserver.log &
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.1 $MCS_INSTALL_BIN/WriteEngineServer &> $LOG_PREFIX/writeengineserver.log &
 echo WriteEngineServer PID = $!
-sleep 1
+sleep 3
 touch $LOG_PREFIX/dmlproc.log && chmod 666 $LOG_PREFIX/dmlproc.log
 $MCS_INSTALL_BIN/DMLProc &> $LOG_PREFIX/dmlproc.log &
 echo DMLProc PID = $!
@@ -73,7 +77,7 @@ echo DDLProc PID = $!
 #$MCS_INSTALL_PATH/mysql/bin/mysqld --user=mysql --defaults-file=$MCS_INSTALL_PATH/mariadb/columnstore/mysql/my.cnf > $LOG_PREFIX/mysqld.log &
 touch $LOG_PREFIX/mysqld_err.log
 chown mysql.mysql $LOG_PREFIX/mysqld_err.log
-$MCS_INSTALL_PATH/mysql/bin/mysqld --basedir=/usr/local/mariadb/columnstore/mysql/ --datadir=/usr/local/mariadb/columnstore/mysql/db --plugin-dir=/usr/local/mariadb/columnstore/mysql/lib/plugin --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --pid-file=/usr/local/mariadb/columnstore/mysql/db/$(hostname).pid --socket=/usr/local/mariadb/columnstore/mysql/lib/mysql/mysql.sock --port=3306 > $LOG_PREFIX/mysqld.log &
+$MCS_INSTALL_PATH/mysql/bin/mysqld --defaults-extra-file=/usr/local/mariadb/columnstore/mysql/my.cnf --basedir=/usr/local/mariadb/columnstore/mysql/  --datadir=/usr/local/mariadb/columnstore/mysql/db --plugin-dir=/usr/local/mariadb/columnstore/mysql/lib/plugin --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --pid-file=/usr/local/mariadb/columnstore/mysql/db/$(hostname).pid --socket=/usr/local/mariadb/columnstore/mysql/lib/mysql/mysql.sock --port=3306 > $LOG_PREFIX/mysqld.log &
 sleep 1
 
 exit 0

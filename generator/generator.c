@@ -68,23 +68,22 @@ void generator(params_t* params)
     srand((unsigned) tv.tv_usec);
     edx_open(params->id);
 
-    printf("id %d recs %ld cols %d\n", params->id, params->recs, params->cols); 
+    //printf("id %d recs %ld cols %d\n", params->id, params->recs, params->cols); 
    
     for(int i = 0; i < params->recs; i++)
     {
         //edx_print_double((float)rand()/(float)(RAND_MAX) * max_float);
         for(int it = 0; it < params->cols; it++)
         {
-            edx_print_double(rand()%RAND_MAX_LOCAL);
-            //printf("%d\t%d\n", params->id, rand()%8196);
-            //edx_print_ui64(rand()%8196); 
+            //edx_print_double(rand()%RAND_MAX_LOCAL);
+            edx_print_ui64(rand()%RAND_MAX_LOCAL); 
             //edx_print_ui64(i); 
-            //edx_print_char('|');
-            //edx_print_char('a' + i % 20);
+            edx_print_char('|');
+            edx_print_char('a' + i % 20);
+            edx_print("some_row_goes_here_another Row goes there. This is excelent.");
             //edx_print_char('|');
         }
         edx_println_char('|');
-        //edx_println("");
     }
 
     edx_close();

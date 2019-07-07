@@ -19,18 +19,20 @@ services:
     cap_add:
         - SYS_PTRACE
     ports:
-        - 3306:3306
+        - 3308:3306
     environment:
         - USER=root
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw
+      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw # sda1
+      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/ext:rw # sda2
     entrypoint:
       - /scripts/idle.sh 
   dev2:
     image: jr/coldev-u18
+    privileged: true
     cap_add:
         - SYS_PTRACE
     environment:
@@ -39,6 +41,8 @@ services:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
+      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw # sda1
+      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/ext:rw # sda2
     entrypoint:
       - /scripts/idle.sh 
     ports:
@@ -53,7 +57,8 @@ services:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/ext_drive:rw
+      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a1:/external:rw # sda1
+      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de1:/ext:rw # sda2
     entrypoint:
       - /scripts/idle.sh 
   compiler:
@@ -70,7 +75,7 @@ services:
       - /scripts/idle.sh 
   dev4:
     image: jr/coldev-centos
-    #image: jr/column_dev
+#    image: jr/column_dev
     cap_add:
         - SYS_PTRACE
     environment:
@@ -79,12 +84,11 @@ services:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-     # - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/usr/local/mariadb:rw
+      #- /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/usr/local/mariadb:rw # sda2
     entrypoint:
       - /scripts/idle.sh
   dev5:
-    #image: jr/column_dev_centos
-    image: coldev_deb
+    image: jr/coldev-u16
     cap_add:
         - SYS_PTRACE
     environment:
@@ -97,7 +101,7 @@ services:
     entrypoint:
       - /scripts/idle.sh
   dev6:
-    image: coldev-centos
+    image: jr/coldev-deb9
     cap_add:
         - SYS_PTRACE
     environment:

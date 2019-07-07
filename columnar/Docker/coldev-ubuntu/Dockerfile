@@ -12,7 +12,6 @@ RUN dpkg-reconfigure --frontend noninteractive locales
 ADD .vimrc /root/
 ADD .gdbinit /root/
 RUN echo '. /usr/local/mariadb/columnstore/bin/columnstoreAlias' >> /root/.bashrc && \
-    echo "alias enable_log='for f in $(ma getprocessconfig | grep ProcessName | cut -d= -f2 | paste -s); do ma setprocessconfig $f pm LogFile on; done'" >> /root/.bashrc && \
     echo "alias mkinstall=\"make -j8 && make -j8 install && /usr/local/mariadb/columnstore/bin/postConfigure\"" >> /root/.bashrc && \
     echo 'alias reinstall="echo y | ma shut && make -j8 && make -j8 install && echo -e \"1\\n\\n\\n\\n\\" | /usr/local/mariadb/columnstore/bin/postConfigure"' >> /root/.bashrc && \
     echo 'alias reg_calp="pushd . && cd /git/mariadb-columnstore-regression-test/mysql/queries/working_tpch1_compareLogOnly"' >> /root/.bashrc && \

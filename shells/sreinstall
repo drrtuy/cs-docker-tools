@@ -9,9 +9,14 @@
 # To choose b/w multiply engine MSC directories
 MCS_SC_ID=$1
 
+if [ -z $MCS_SC_ID ]; then
+    MCS_SOURCE_PATH=/git/mdb-server/columnstore_2
+else
+    MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SC_ID}-mariadb-columnstore-engine
+fi
+
 MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
 MCS_INSTALL_PATH=/usr/local/mariadb/columnstore
-MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SC_ID}-mariadb-columnstore-engine
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
 

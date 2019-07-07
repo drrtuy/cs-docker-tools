@@ -4,7 +4,6 @@
 # with SKIP_OAM_INIT=1
 
 PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld WriteEngineServer'
-PROGS+=' WriteEngineServer'
 
 MCS_INSTALL_DIR=/usr/local/mariadb/columnstore
 
