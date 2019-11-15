@@ -14,7 +14,7 @@ ADD .gdbinit /root/
 RUN echo '. /usr/local/mariadb/columnstore/bin/columnstoreAlias' >> /root/.bashrc && \
     echo "alias mkinstall=\"make -j8 && make -j8 install && /usr/local/mariadb/columnstore/bin/postConfigure\"" >> /root/.bashrc && \
     echo 'alias reinstall="echo y | ma shut && make -j8 && make -j8 install && echo -e \"1\\n\\n\\n\\n\\" | /usr/local/mariadb/columnstore/bin/postConfigure"' >> /root/.bashrc && \
-    echo 'alias reg_calp="pushd . && cd /git/mariadb-columnstore-regression-test/mysql/queries/working_tpch1_compareLogOnly"' >> /root/.bashrc && \
+    echo 'alias regr="pushd . && cd /git/mariadb-columnstore-regression-test/mysql/queries/"' >> /root/.bashrc && \
     echo 'alias d1="pushd . && cd /git/mariadb-columnstore-server/d1-mariadb-columnstore-engine/"' >> /root/.bashrc && \
     echo 'alias d2="pushd . && cd /git/mariadb-columnstore-server/d2-mariadb-columnstore-engine/"' >> /root/.bashrc && \
     echo 'alias sreinstall="stopcs && cp /usr/local/mariadb/columnstore/etc/Columnstore.xml /Columnstore.xml && pushd . && d2 && make -j8 && make -j8 install && cp /Columnstore.xml /usr/local/mariadb/columnstore/etc/Columnstore.xml && startcs && popd"' >> /root/.bashrc && \

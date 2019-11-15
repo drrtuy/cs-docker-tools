@@ -234,6 +234,7 @@
 		<Port>8620</Port>
 	</PMS32>
 	<SystemConfig>
+		<!--<SystemLang>ru_RU.UTF-8</SystemLang>-->
 		<SystemLang>C</SystemLang>
 		<SystemName>columnstore-1</SystemName>
 		<ParentOAMModuleName>pm1</ParentOAMModuleName>

@@ -7,12 +7,15 @@
 # above the MCS engine source.
 # This script also presumes default installation path for MCS 
 # and uses a number of external scripts to start/stop MCS
+# 1.4 notes. The runs of this script with a single arg are 1.2 builds
+# whilst those without are 1.4. This governs a number of important path
+# changes b/w 1.2 and 1.4
 
-#BUILD_TYPE=release
+#BUILD_TYPE=relWithDebInfo
 BUILD_TYPE=debug
 MCS_SOURCE_ID=$1
 if [ -z $MCS_SOURCE_ID ]; then
-    #MCS_SOURCE_ID=1
+    MCS_SOURCE_ID=0
     MCS_SOURCE_PATH=/git/mdb-server/columnstore_2
 else
     MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SOURCE_ID}-mariadb-columnstore-engine
@@ -23,9 +26,8 @@ MCS_TMP_DIR=/tmp/columnstore_tmp_files
 MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
-MDB_CMAKE_FLAGS=' -DWITHOUT_TOKUDB=1 -DWITHOUT_ROCKSDB=1 -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DWITH_MARIABACKUP=NO'
 #MCS_CMAKE_FLAGS='-DWITH_SHARED_COMP_TESTS=1'
-MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1'
+MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 -DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
 
 # script
 $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
@@ -34,11 +36,27 @@ rm -rf $MCS_TMP_DIR/*
 
 cd $MCS_SOURCE_PATH
 
-cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
-make -j $CPUS install && \
-cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
 
-cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml $MCS_INSTALL_PATH/etc/
+if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
+    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO'
+    MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 -DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
+    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
+    make -j $CPUS install && \
+    cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+else
+    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO  -DRPM=CentOS7'
+    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
+    make -j $CPUS install && \
+    cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+fi
+
+if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
+    cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml $MCS_INSTALL_PATH/etc/
+else
+    cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml /etc/columnstore/Columnstore.xml
+fi
+
+chown -R mysql.mysql $MCS_INSTALL_PATH/mysql
 
 $MCS_INSTALL_PATH/bin/post-mysqld-install
 # Wait until mysqld finishes
@@ -51,9 +69,15 @@ mkdir $MCS_INSTALL_PATH/data1/systemFiles
 mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
 
 # script
+#chown -R mysql.mysql $MCS_INSTALL_PATH
+#chown -R mysql.mysql /var/log/mariadb/ 
+
+#sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
 $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
 
 # Populate system catalog with initial data
 $MCS_INSTALL_PATH/bin/dbbuilder 7
+
+
 
 exit 0 

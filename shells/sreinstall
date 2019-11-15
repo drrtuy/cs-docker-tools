@@ -24,10 +24,19 @@ CPUS=$(getconf _NPROCESSORS_ONLN)
 $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
 
 # Backup the config file
-cp $MCS_INSTALL_PATH/etc/Columnstore.xml $TMP_PATH/Columnstore.xml 
+if [ $MCS_SC_ID -eq 1 -o $MCS_SC_ID -eq 2 ] ; then
+    cp $MCS_INSTALL_PATH/etc/Columnstore.xml $TMP_PATH/Columnstore.xml 
+else
+    cp /etc/columnstore/Columnstore.xml $TMP_PATH/Columnstore.xml
+fi
+
 #pushd . 
 # Run the next step only of previous was successful
-cd $MCS_SOURCE_PATH && make -j$CPUS install && cp $TMP_PATH/Columnstore.xml $MCS_INSTALL_PATH/etc/Columnstore.xml
+if [ $MCS_SC_ID -eq 1 -o $MCS_SC_ID -eq 2 ] ; then
+    cd $MCS_SOURCE_PATH && make -j$CPUS install && cp $TMP_PATH/Columnstore.xml $MCS_INSTALL_PATH/etc/Columnstore.xml
+else
+    cd $MCS_SOURCE_PATH && make -j$CPUS install && cp $TMP_PATH/Columnstore.xml /etc/columnstore/Columnstore.xml
+fi
 
 # Script
 $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
