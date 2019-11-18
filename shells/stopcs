@@ -5,7 +5,13 @@
 
 PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld WriteEngineServer'
 
-MCS_INSTALL_DIR=/usr/local/mariadb/columnstore
+MINOR=$1
+
+if [ $MINOR -eq 4 ]; then
+    MCS_INSTALL_DIR=/usr
+else
+    MCS_INSTALL_DIR=/usr/local/mariadb/columnstore
+fi
 
 $MCS_INSTALL_DIR/bin/save_brm
 

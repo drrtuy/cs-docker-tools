@@ -1,5 +1,5 @@
 #!/bin/bash
 
-stopcs
-startcs
+stopcs 4
+startcs 4
 

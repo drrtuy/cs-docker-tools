@@ -11,27 +11,38 @@
 # whilst those without are 1.4. This governs a number of important path
 # changes b/w 1.2 and 1.4
 
-#BUILD_TYPE=relWithDebInfo
-BUILD_TYPE=debug
+BUILD_TYPE=relWithDebInfo
+MDB_BUILD_TYPE=release
+#BUILD_TYPE=debug
 MCS_SOURCE_ID=$1
+DISTRO=$2
+MCS_SCRIPTS_REPO_PREFIX=/root/cs-docker-tools
 if [ -z $MCS_SOURCE_ID ]; then
     MCS_SOURCE_ID=0
-    MCS_SOURCE_PATH=/git/mdb-server/columnstore_2
+    MDB_SOURCE_PATH=/root/mdb-server
+    MCS_SOURCE_PATH=/root/mdb-server/columnstore
 else
-    MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SOURCE_ID}-mariadb-columnstore-engine
+    MDB_SOURCE_PATH=/root/mdb-server
+    MCS_SOURCE_PATH=/root/mdb-server/columnstore
+    $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
 fi
-MCS_INSTALL_PREFIX=/usr/local/mariadb
-MCS_INSTALL_PATH=$MCS_INSTALL_PREFIX/columnstore
+
+if [ -z $DISTRO ]; then
+    MCS_INSTALL_PREFIX=/usr/local/mariadb
+    MCS_INSTALL_PATH=$MCS_INSTALL_PREFIX/columnstore
+    rm -rf $MCS_INSTALL_PATH
+else
+    MCS_INSTALL_PREFIX=/var/lib/
+    rm -rf /var/lib/columnstore
+fi
+
 MCS_TMP_DIR=/tmp/columnstore_tmp_files
-MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
 #MCS_CMAKE_FLAGS='-DWITH_SHARED_COMP_TESTS=1'
-MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 -DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
+MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 ' #-DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
 
 # script
-$MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
-rm -rf $MCS_INSTALL_PATH
 rm -rf $MCS_TMP_DIR/*
 
 cd $MCS_SOURCE_PATH
@@ -40,14 +51,23 @@ cd $MCS_SOURCE_PATH
 if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
     MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO'
     MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 -DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
-    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
+    cd .. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
     make -j $CPUS install && \
     cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
 else
-    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO  -DRPM=CentOS7'
-    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
-    make -j $CPUS install && \
-    cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+    if [ $DISTRO = 'bionic' ]; then
+        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic'
+        MCS_CMAKE_FLAGS="-DDEB=bionic ${MCS_CMAKE_FLAGS} -DSERVER_BUILD_INCLUDE_DIR=/usr/include/mariadb/server/"
+        MCS_CMAKE_FLAGS="${MCS_CMAKE_FLAGS} -DSERVER_SOURCE_ROOT_DIR=${MDB_SOURCE_PATH} -DSERVER_BUILD_DIR=${MDB_SOURCE_PATH}"
+        cd .. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
+        make -j $CPUS install && \
+        cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+    elif [ $DISTRO = 'centos' ]; then 
+        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO  -DRPM=CentOS7'
+        cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
+        make -j $CPUS install && \
+        cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+    fi
 fi
 
 if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
@@ -56,28 +76,52 @@ else
     cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml /etc/columnstore/Columnstore.xml
 fi
 
-chown -R mysql.mysql $MCS_INSTALL_PATH/mysql
 
-$MCS_INSTALL_PATH/bin/post-mysqld-install
-# Wait until mysqld finishes
-sleep 3
-$MCS_INSTALL_PATH/bin/post-mysql-install
-$MCS_INSTALL_PATH/bin/post-mysqld-install
+if [ $DISTRO = 'bionic' ]; then
+    rm -rf /var/lib/mysql
+    mkdir /var/run/mysqld
+    chown -R mysql.mysql /var/run/mysqld 
+    post-mysqld-install
+    #chown -R mysql.mysql /var/lib/mysql
+    # Wait until mysqld finishes
+    sleep 3
+    post-mysql-install
+    post-mysqld-install
 
-mkdir $MCS_INSTALL_PATH/data1
-mkdir $MCS_INSTALL_PATH/data1/systemFiles
-mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
+    mkdir /var/lib/columnstore/data1
+    mkdir /var/lib/columnstore/data1/systemFiles
+    mkdir /var/lib/columnstore/data1/systemFiles/dbrm
+    # script
+    #chown -R mysql.mysql $MCS_INSTALL_PATH
+    #chown -R mysql.mysql /var/log/mariadb/ 
 
-# script
-#chown -R mysql.mysql $MCS_INSTALL_PATH
-#chown -R mysql.mysql /var/log/mariadb/ 
+    #sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs 4
 
-#sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
-$MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+    # Populate system catalog with initial data
+    dbbuilder 7
 
-# Populate system catalog with initial data
-$MCS_INSTALL_PATH/bin/dbbuilder 7
+else
+    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    # Wait until mysqld finishes
+    sleep 3
+    $MCS_INSTALL_PATH/bin/post-mysql-install
+    $MCS_INSTALL_PATH/bin/post-mysqld-install
 
+    mkdir $MCS_INSTALL_PATH/data1
+    mkdir $MCS_INSTALL_PATH/data1/systemFiles
+    mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
+    # script
+    #chown -R mysql.mysql $MCS_INSTALL_PATH
+    #chown -R mysql.mysql /var/log/mariadb/ 
+
+    #sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+
+    # Populate system catalog with initial data
+    $MCS_INSTALL_PATH/bin/dbbuilder 7
+
+fi
 
 
 exit 0 
