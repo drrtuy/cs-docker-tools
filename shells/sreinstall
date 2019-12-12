@@ -10,7 +10,7 @@
 MCS_SC_ID=$1
 
 if [ -z $MCS_SC_ID ]; then
-    MCS_SOURCE_PATH=/root/mdb-server/columnstore
+    MCS_SOURCE_PATH=/root/mdb-server/storage/columnstore
 else
     MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SC_ID}-mariadb-columnstore-engine
 fi

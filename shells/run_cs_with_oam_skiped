@@ -11,8 +11,9 @@
 # whilst those without are 1.4. This governs a number of important path
 # changes b/w 1.2 and 1.4
 
-BUILD_TYPE=relWithDebInfo
-MDB_BUILD_TYPE=release
+#BUILD_TYPE=relWithDebInfo
+#MDB_BUILD_TYPE=release
+MDB_BUILD_TYPE=debug
 #BUILD_TYPE=debug
 MCS_SOURCE_ID=$1
 DISTRO=$2
@@ -20,10 +21,10 @@ MCS_SCRIPTS_REPO_PREFIX=/root/cs-docker-tools
 if [ -z $MCS_SOURCE_ID ]; then
     MCS_SOURCE_ID=0
     MDB_SOURCE_PATH=/root/mdb-server
-    MCS_SOURCE_PATH=/root/mdb-server/columnstore
+    MCS_SOURCE_PATH=/root/mdb-server/storage/columnstore
 else
     MDB_SOURCE_PATH=/root/mdb-server
-    MCS_SOURCE_PATH=/root/mdb-server/columnstore
+    MCS_SOURCE_PATH=/root/mdb-server/storage/columnstore
     $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
 fi
 
@@ -33,14 +34,16 @@ if [ -z $DISTRO ]; then
     rm -rf $MCS_INSTALL_PATH
 else
     MCS_INSTALL_PREFIX=/var/lib/
-    rm -rf /var/lib/columnstore
+    rm -rf /var/lib/columnstore/data1/*
+    rm -rf /var/lib/columnstore/data/
+    rm -rf /var/lib/columnstore/local/
 fi
 
 MCS_TMP_DIR=/tmp/columnstore_tmp_files
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
 #MCS_CMAKE_FLAGS='-DWITH_SHARED_COMP_TESTS=1'
-MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 ' #-DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
+MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1' #-DWITH_SHARED_COMP_TESTS=1' #-DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
 
 # script
 rm -rf $MCS_TMP_DIR/*
@@ -56,12 +59,12 @@ if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
     cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
 else
     if [ $DISTRO = 'bionic' ]; then
-        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic'
+        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES -DSKIP_OAM_INIT=1'
         MCS_CMAKE_FLAGS="-DDEB=bionic ${MCS_CMAKE_FLAGS} -DSERVER_BUILD_INCLUDE_DIR=/usr/include/mariadb/server/"
         MCS_CMAKE_FLAGS="${MCS_CMAKE_FLAGS} -DSERVER_SOURCE_ROOT_DIR=${MDB_SOURCE_PATH} -DSERVER_BUILD_DIR=${MDB_SOURCE_PATH}"
-        cd .. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
-        make -j $CPUS install && \
-        cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+        cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
+        make -j $CPUS install
+        #cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
     elif [ $DISTRO = 'centos' ]; then 
         MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO  -DRPM=CentOS7'
         cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
