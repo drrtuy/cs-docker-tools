@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gdb /usr/local/mariadb/columnstore/bin/ExeMgr --tui -p $(pidof ExeMgr)
+gdb /usr/bin/ExeMgr --tui -p $(pidof ExeMgr)

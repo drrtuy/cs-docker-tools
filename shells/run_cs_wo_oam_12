@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# This script compiles/installs MCS from scratch skiping long
+# OAM initialization step that is usually unnecessary for
+# development. 
+# The script presumes that server's source code is one directory
+# above the MCS engine source.
+# This script also presumes default installation path for MCS 
+# and uses a number of external scripts to start/stop MCS
+
+BUILD_TYPE=release
+#BUILD_TYPE=debug
+MCS_SOURCE_ID=$1
+if [ -z $MCS_SOURCE_ID ]; then
+    #MCS_SOURCE_ID=1
+    MCS_SOURCE_PATH=/git/mdb-server/columnstore_2
+else
+    MCS_SOURCE_PATH=/data/mariadb-columnstore-server/d${MCS_SOURCE_ID}-mariadb-columnstore-engine
+fi
+MCS_INSTALL_PREFIX=/usr/local/mariadb
+MCS_INSTALL_PATH=$MCS_INSTALL_PREFIX/columnstore
+MCS_TMP_DIR=/tmp/columnstore_tmp_files
+MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
+TMP_PATH=/tmp
+CPUS=$(getconf _NPROCESSORS_ONLN)
+MDB_CMAKE_FLAGS=' -DWITHOUT_TOKUDB=1 -DWITHOUT_ROCKSDB=1 -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DWITH_MARIABACKUP=NO -DHAVE_VALGRIND_MEMCHECK_H=0'
+#MCS_CMAKE_FLAGS='-DWITH_SHARED_COMP_TESTS=1'
+MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1'
+
+# script
+$MCS_SCRIPTS_REPO_PREFIX/shells/stopcs_12
+rm -rf $MCS_INSTALL_PATH
+rm -rf $MCS_TMP_DIR/*
+
+cd $MCS_SOURCE_PATH
+
+cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
+make -j $CPUS install && \
+cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+
+cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore_12.xml $MCS_INSTALL_PATH/etc/Columnstore.xml
+
+$MCS_INSTALL_PATH/bin/post-mysqld-install
+# Wait until mysqld finishes
+sleep 3
+$MCS_INSTALL_PATH/bin/post-mysql-install
+$MCS_INSTALL_PATH/bin/post-mysqld-install
+
+mkdir $MCS_INSTALL_PATH/data1
+mkdir $MCS_INSTALL_PATH/data1/systemFiles
+mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
+
+# script
+$MCS_SCRIPTS_REPO_PREFIX/shells/startcs_12
+
+
+# Populate system catalog with initial data
+$MCS_INSTALL_PATH/bin/dbbuilder 7
+
+exit 0 

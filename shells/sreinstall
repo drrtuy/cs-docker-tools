@@ -10,12 +10,12 @@
 MCS_SC_ID=$1
 
 if [ -z $MCS_SC_ID ]; then
-    MCS_SOURCE_PATH=/root/mdb-server/storage/columnstore
+    MCS_SOURCE_PATH=/data/mdb-server/storage/columnstore
 else
     MCS_SOURCE_PATH=/git/mariadb-columnstore-server/d${MCS_SC_ID}-mariadb-columnstore-engine
 fi
 
-MCS_SCRIPTS_REPO_PREFIX=/root/cs-docker-tools
+MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
 MCS_INSTALL_PATH=/usr/local/mariadb/columnstore
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)

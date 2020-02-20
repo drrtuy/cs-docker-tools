@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script gracefully stops MCS when it was compiles
-# with SKIP_OAM_INIT=1
+# This script gracefully stops MariaDB Columnstore
+# to be used with SKIP_OAM_INIT=1
 
 PROGS='workernode controllernode PrimProc ExeMgr DMLProc DDLProc mysqld WriteEngineServer'
 
