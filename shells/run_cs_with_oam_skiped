@@ -15,74 +15,79 @@
 #MDB_BUILD_TYPE=release
 MDB_BUILD_TYPE=debug
 #BUILD_TYPE=debug
-MCS_SOURCE_ID=$1
-DISTRO=$2
+DISTRO=$1
 MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
-if [ -z $MCS_SOURCE_ID ]; then
-    MCS_SOURCE_ID=0
-    MDB_SOURCE_PATH=/data/mdb-server
-    MCS_SOURCE_PATH=/data/mdb-server/storage/columnstore
-else
-    MDB_SOURCE_PATH=/data/mdb-server
-    MCS_SOURCE_PATH=/data/mdb-server/storage/columnstore
-    $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
+MDB_SOURCE_PATH=/data/mdb-server
+MCS_SOURCE_PATH=$MDB_SOURCE_PATH/storage/columnstore
+MCS_CONFIG_DIR=/etc/columnstore
+$MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
+MDB_GIT_URL=https://github.com/MariaDB/server.git
+MCS_GIT_URL=https://github.com/mariadb-corporation/mariadb-columnstore-engine.git
+MDB_GIT_TAG=mariadb-10.5.1
+MCS_GIT_TAG=develop
+
+if [ $DISTRO = 'bionic' ]; then
+    sudo apt-get -y update
+    apt-get -y install build-essential automake libboost-all-dev bison cmake \
+    libncurses5-dev libreadline-dev \
+    libperl-dev libssl-dev libxml2-dev libkrb5-dev flex libpam-dev git \
+    libreadline-dev libsnappy-dev libcurl4-openssl-dev
 fi
 
-if [ -z $DISTRO ]; then
-    MCS_INSTALL_PREFIX=/usr/local/mariadb
-    MCS_INSTALL_PATH=$MCS_INSTALL_PREFIX/columnstore
-    rm -rf $MCS_INSTALL_PATH
-else
-    MCS_INSTALL_PREFIX=/var/lib/
-    rm -rf /var/lib/columnstore/data1/*
-    rm -rf /var/lib/columnstore/data/
-    rm -rf /var/lib/columnstore/local/
+if [ ! -d $MDB_SOURCE_PATH ]; then
+    git clone $MDB_GIT_URL $MDB_SOURCE_PATH -b $MDB_GIT_TAG
 fi
+
+if [ ! -d $MCS_SOURCE_PATH ]; then
+    git clone $MCS_GIT_URL $MCS_SOURCE_PATH -b $MCS_GIT_TAG
+fi
+
+if [ ! -d $MCS_CONFIG_DIR ]; then
+    mkdir $MCS_CONFIG_DIR
+fi
+
+if [ -z $(grep mysql /etc/passwd) ]; then
+    echo "You need to manually add mysql user into /etc/passwd, e.g. mysql:x:999:999:mysql:/var/lib/mysql:/bin/bash"
+    exit 1
+fi
+
+if [ -z $(grep mysql /etc/group) ]; then
+    echo "You need to manually add mysql group into /etc/group, e.g. mysql:x:999"
+    exit 1
+fi
+
+MCS_INSTALL_PREFIX=/var/lib/
+rm -rf /var/lib/columnstore/data1/*
+rm -rf /var/lib/columnstore/data/
+rm -rf /var/lib/columnstore/local/
 
 MCS_TMP_DIR=/tmp/columnstore_tmp_files
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
-#MCS_CMAKE_FLAGS='-DWITH_SHARED_COMP_TESTS=1'
-MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1' #-DWITH_SHARED_COMP_TESTS=1' #-DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_ROWGROUP_UT=1'
+#UT_CMAKE_FLAGS='-DSKIP_OAM_INIT=1' #-DWITH_SHARED_COMP_TESTS=1' #-DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_ROWGROUP_UT=1'
 
 # script
 rm -rf $MCS_TMP_DIR/*
 
 cd $MCS_SOURCE_PATH
-
-if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
-    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO'
-    MCS_CMAKE_FLAGS='-DSKIP_OAM_INIT=1 -DWITH_SORTING_COMPARATORS_UT=1 -DWITH_ORDERBY_UT=1'
-    cd .. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE $MDB_CMAKE_FLAGS -DCMAKE_INSTALL_PREFIX=$MCS_INSTALL_PATH/mysql && \
+if [ $DISTRO = 'bionic' ]; then
+    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES'
+    # These flags will be available in 1.5
+    MDB_CMAKE_FLAGS +='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
+    cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
+    make -j $CPUS install
+elif [ $DISTRO = 'centos' ]; then
+    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
+    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
     make -j $CPUS install && \
     cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
-else
-    if [ $DISTRO = 'bionic' ]; then
-        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES'
-        # These flags will be available in 1.5
-        #MDB_CMAKE_FLAGS='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
-        MCS_CMAKE_FLAGS="-DDEB=bionic ${MCS_CMAKE_FLAGS} -DSERVER_BUILD_INCLUDE_DIR=/usr/include/mariadb/server/"
-        MCS_CMAKE_FLAGS="${MCS_CMAKE_FLAGS} -DSERVER_SOURCE_ROOT_DIR=${MDB_SOURCE_PATH} -DSERVER_BUILD_DIR=${MDB_SOURCE_PATH}"
-        cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
-        make -j $CPUS install
-        #cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
-    elif [ $DISTRO = 'centos' ]; then 
-        MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO  -DRPM=CentOS7'
-        cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
-        make -j $CPUS install && \
-        cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
-    fi
 fi
 
-
-if [ $MCS_SOURCE_ID -eq 1 -o $MCS_SOURCE_ID -eq 2 ]; then
-    cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml $MCS_INSTALL_PATH/etc/
-else
-    cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml /etc/columnstore/Columnstore.xml
-fi
-
+cp -r /etc/mysql/conf.d /etc/my.cnf.d/
+cp $MCS_SCRIPTS_REPO_PREFIX/columnar/Columnstore.xml /etc/columnstore/Columnstore.xml
 
 if [ $DISTRO = 'bionic' ]; then
+    cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
     rm -rf /var/lib/mysql
     mkdir /var/run/mysqld
     mkdir /var/lib/mysql
@@ -105,8 +110,7 @@ if [ $DISTRO = 'bionic' ]; then
 
     # Populate system catalog with initial data
     dbbuilder 7
-
-else
+elif [ $DISTRO = 'centos' ]; then
     $MCS_INSTALL_PATH/bin/post-mysqld-install
     # Wait until mysqld finishes
     sleep 3
@@ -125,7 +129,6 @@ else
 
     # Populate system catalog with initial data
     $MCS_INSTALL_PATH/bin/dbbuilder 7
-
 fi
 
 
