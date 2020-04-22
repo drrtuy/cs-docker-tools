@@ -32,6 +32,11 @@ if [ $DISTRO = 'bionic' ]; then
     libncurses5-dev libreadline-dev \
     libperl-dev libssl-dev libxml2-dev libkrb5-dev flex libpam-dev git \
     libreadline-dev libsnappy-dev libcurl4-openssl-dev
+elif [ $DISTRO = 'centos' ]; then
+    yum -y install epel-release \
+    && yum -y groupinstall "Development Tools" \
+    && yum -y install bison ncurses-devel readline-devel perl-devel openssl-devel cmake libxml2-devel gperf libaio-devel libevent-devel python-devel ruby-devel tree wget pam-devel snappy-devel libicu \
+    && yum -y install vim wget strace ltrace gdb  rsyslog net-tools openssh-server expect boost perl-DBI libicu boost-devel initscripts jemalloc-devel libcurl-devel
 fi
 
 if [ ! -d $MDB_SOURCE_PATH ]; then
@@ -78,9 +83,10 @@ if [ $DISTRO = 'bionic' ]; then
     make -j $CPUS install
 elif [ $DISTRO = 'centos' ]; then
     MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
-    cd .. && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE $MDB_CMAKE_FLAGS && \
-    make -j $CPUS install && \
-    cd $MCS_SOURCE_PATH && cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE ${MCS_CMAKE_FLAGS} && make install -j $CPUS
+    # These flags will be available in 1.5
+    MDB_CMAKE_FLAGS +='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
+    cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
+    make -j $CPUS install
 fi
 
 cp -r /etc/mysql/conf.d /etc/my.cnf.d/
@@ -111,24 +117,48 @@ if [ $DISTRO = 'bionic' ]; then
     # Populate system catalog with initial data
     dbbuilder 7
 elif [ $DISTRO = 'centos' ]; then
-    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
+    rm -rf /var/lib/mysql
+    mkdir /var/run/mysqld
+    mkdir /var/lib/mysql
+    chown -R mysql:mysql /var/lib/mysql
+    chown -R mysql.mysql /var/run/mysqld 
+    post-mysqld-install
     # Wait until mysqld finishes
     sleep 3
-    $MCS_INSTALL_PATH/bin/post-mysql-install
-    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    post-mysql-install
+    post-mysqld-install
 
-    mkdir $MCS_INSTALL_PATH/data1
-    mkdir $MCS_INSTALL_PATH/data1/systemFiles
-    mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
+    mkdir /var/lib/columnstore/data1
+    mkdir /var/lib/columnstore/data1/systemFiles
+    mkdir /var/lib/columnstore/data1/systemFiles/dbrm
+
+    chown -R mysql:mysql /var/log/mariadb/ 
+
+    # The argument's value here isn't important.
+    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs 4
+
+    # Populate system catalog with initial data
+    dbbuilder 7
+
+#    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    # Wait until mysqld finishes
+#    sleep 3
+#    $MCS_INSTALL_PATH/bin/post-mysql-install
+#    $MCS_INSTALL_PATH/bin/post-mysqld-install
+
+#    mkdir $MCS_INSTALL_PATH/data1
+#    mkdir $MCS_INSTALL_PATH/data1/systemFiles
+#    mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
     # script
     #chown -R mysql.mysql $MCS_INSTALL_PATH
     #chown -R mysql.mysql /var/log/mariadb/ 
 
     #sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
-    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+#    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
 
     # Populate system catalog with initial data
-    $MCS_INSTALL_PATH/bin/dbbuilder 7
+#    $MCS_INSTALL_PATH/bin/dbbuilder 7
 fi
 
 
