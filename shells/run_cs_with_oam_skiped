@@ -16,14 +16,14 @@
 MDB_BUILD_TYPE=debug
 #BUILD_TYPE=debug
 DISTRO=$1
-MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
-MDB_SOURCE_PATH=/data/mdb-server
+MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
+MDB_SOURCE_PATH=/git/mdb-server
 MCS_SOURCE_PATH=$MDB_SOURCE_PATH/storage/columnstore
 MCS_CONFIG_DIR=/etc/columnstore
 $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
 MDB_GIT_URL=https://github.com/MariaDB/server.git
 MCS_GIT_URL=https://github.com/mariadb-corporation/mariadb-columnstore-engine.git
-MDB_GIT_TAG=mariadb-10.5.1
+MDB_GIT_TAG=mariadb-10.5.2
 MCS_GIT_TAG=develop
 
 if [ $DISTRO = 'bionic' ]; then
@@ -37,6 +37,11 @@ elif [ $DISTRO = 'centos' ]; then
     && yum -y groupinstall "Development Tools" \
     && yum -y install bison ncurses-devel readline-devel perl-devel openssl-devel cmake libxml2-devel gperf libaio-devel libevent-devel python-devel ruby-devel tree wget pam-devel snappy-devel libicu \
     && yum -y install vim wget strace ltrace gdb  rsyslog net-tools openssh-server expect boost perl-DBI libicu boost-devel initscripts jemalloc-devel libcurl-devel
+elif [ $DISTRO = 'leap' ]; then
+    zypper install -y bison ncurses-devel readline-devel libopenssl-devel cmake libxml2-devel gperf libaio-devel libevent-devel python-devel ruby-devel tree wget pam-devel snappy-devel libicu-devel \
+    && zypper install -y libboost_system-devel libboost_filesystem-devel libboost_thread-devel libboost_regex-devel libboost_date_time-devel libboost_chrono-devel \
+    && zypper install -y vim wget strace ltrace gdb  rsyslog net-tools expect perl-DBI libicu boost-devel jemalloc-devel libcurl-devel \
+    && zypper install -y gcc gcc-c++ git automake libtool
 fi
 
 if [ ! -d $MDB_SOURCE_PATH ]; then
@@ -85,6 +90,12 @@ elif [ $DISTRO = 'centos' ]; then
     MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
     # These flags will be available in 1.5
     MDB_CMAKE_FLAGS +='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
+    cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
+    make -j $CPUS install
+elif [ $DISTRO = 'leap' ]; then
+    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
+    # These flags will be available in 1.5
+    #MDB_CMAKE_FLAGS +='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
     cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
     make -j $CPUS install
 fi
@@ -140,25 +151,30 @@ elif [ $DISTRO = 'centos' ]; then
 
     # Populate system catalog with initial data
     dbbuilder 7
-
-#    $MCS_INSTALL_PATH/bin/post-mysqld-install
+elif [ $DISTRO = 'leap' ]; then
+    cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
+    rm -rf /var/lib/mysql
+    mkdir /var/run/mysqld
+    mkdir /var/lib/mysql
+    chown -R mysql:mysql /var/lib/mysql
+    chown -R mysql.mysql /var/run/mysqld 
+    post-mysqld-install
     # Wait until mysqld finishes
-#    sleep 3
-#    $MCS_INSTALL_PATH/bin/post-mysql-install
-#    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    sleep 3
+    post-mysql-install
+    post-mysqld-install
 
-#    mkdir $MCS_INSTALL_PATH/data1
-#    mkdir $MCS_INSTALL_PATH/data1/systemFiles
-#    mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
-    # script
-    #chown -R mysql.mysql $MCS_INSTALL_PATH
-    #chown -R mysql.mysql /var/log/mariadb/ 
+    mkdir /var/lib/columnstore/data1
+    mkdir /var/lib/columnstore/data1/systemFiles
+    mkdir /var/lib/columnstore/data1/systemFiles/dbrm
 
-    #sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
-#    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
+    chown -R mysql:mysql /var/log/mariadb/ 
+
+    # The argument's value here isn't important.
+    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs 4
 
     # Populate system catalog with initial data
-#    $MCS_INSTALL_PATH/bin/dbbuilder 7
+    dbbuilder 7
 fi
 
 
