@@ -87,9 +87,9 @@ if [ $DISTRO = 'bionic' ]; then
     cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
     make -j $CPUS install
 elif [ $DISTRO = 'centos' ]; then
-    MDB_CMAKE_FLAGS='-DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
+    MDB_CMAKE_FLAGS='-DPLUGIN_CONNECT=NO -DPLUGIN_DISKS=NO -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DRPM=CentOS7 -DPLUGIN_COLUMNSTORE=YES'
     # These flags will be available in 1.5
-    MDB_CMAKE_FLAGS +='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
+    #MDB_CMAKE_FLAGS+='-DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1'
     cd ../.. && cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && make uninstall
     make -j $CPUS install
 elif [ $DISTRO = 'leap' ]; then
@@ -129,6 +129,7 @@ if [ $DISTRO = 'bionic' ]; then
     dbbuilder 7
 elif [ $DISTRO = 'centos' ]; then
     cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
+    rm -f /etc/my.cnf.d/mariadb-enterprise.cnf
     rm -rf /var/lib/mysql
     mkdir /var/run/mysqld
     mkdir /var/lib/mysql
