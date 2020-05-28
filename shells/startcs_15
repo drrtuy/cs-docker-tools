@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script allows to gracefully start MCS
+# when it was initially compiled with SKIP_OAM_INIT=1
+
+systemctl start mariadb
+systemctl start mcs-loadbrm
+systemctl start mcs-workernode
+systemctl start mcs-controllernode
+systemctl start mcs-exemgr
+systemctl start mcs-writeengineserver
+systemctl start mcs-primproc
+systemctl start mcs-dmlproc
+systemctl start mcs-ddlproc
+
+exit 0
