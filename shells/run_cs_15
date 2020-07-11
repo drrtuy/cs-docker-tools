@@ -82,7 +82,14 @@ if [ $? -ne 0 ]; then
     return 1
 fi
 
+mv /usr/lib/mysql/plugin/ha_columnstore.so /tmp
+mv /usr/lib64/mysql/plugin/ha_columnstore.so /tmp
+
+echo 'plugin_maturity=beta' >> /etc/my.cnf.d/columnstore.cnf
+
 /usr/bin/mysql_install_db --rpm --user=mysql
+
+mv /tmp/ha_columnstore.so /usr/lib/mysql/plugin/ha_columnstore.so
 
 cp -r /etc/mysql/conf.d /etc/my.cnf.d/
 cp $MDB_SOURCE_PATH/storage/columnstore/columnstore/oam/etc/Columnstore.xml /etc/columnstore/Columnstore.xml
@@ -100,9 +107,6 @@ if [ $DISTRO = 'bionic' ]; then
     systemctl daemon-reload
     rm -f /etc/mysql/my.cnf
     cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
-    #rm -rf /var/lib/mysql
-    #mkdir /var/run/mysqld
-    #mkdir /var/lib/mysql
     chown -R mysql:mysql /var/lib/mysql
     chown -R mysql.mysql /var/run/mysqld 
     chmod +x /usr/bin/mariadb*
@@ -118,29 +122,25 @@ if [ $DISTRO = 'bionic' ]; then
     chmod 777 /var/log/mariadb/ 
     chmod 777 /var/log/mariadb/columnstore 
 
-    #$MCS_SCRIPTS_REPO_PREFIX/shells/startcs_15
-
     # Populate system catalog with initial data
     #dbbuilder 7
 elif [ $DISTRO = 'centos' ]; then
-    $MCS_INSTALL_PATH/bin/post-mysqld-install
-    # Wait until mysqld finishes
-    sleep 3
-    $MCS_INSTALL_PATH/bin/post-mysql-install
-    $MCS_INSTALL_PATH/bin/post-mysqld-install
+    cp ./support-files/*.service /lib/systemd/system/
+    cp ./storage/columnstore/columnstore/oam/install_scripts/*.service /lib/systemd/system/
+    cp ./storage/columnstore/oam/install_scripts/*.service /lib/systemd/system/
+    systemctl daemon-reload
 
+    rm -f /etc/mysql/my.cnf
+    cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
+    systemctl restart mariadb 
+ 
     mkdir $MCS_INSTALL_PATH/data1
     mkdir $MCS_INSTALL_PATH/data1/systemFiles
     mkdir $MCS_INSTALL_PATH/data1/systemFiles/dbrm
-    # script
-    #chown -R mysql.mysql $MCS_INSTALL_PATH
-    #chown -R mysql.mysql /var/log/mariadb/ 
+    chmod +x /usr/bin/mariadb*
+ 
+    columnstore-post-install
 
-    #sudo mysql $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
-    $MCS_SCRIPTS_REPO_PREFIX/shells/startcs
-
-    # Populate system catalog with initial data
-    $MCS_INSTALL_PATH/bin/dbbuilder 7
 fi
 
 
