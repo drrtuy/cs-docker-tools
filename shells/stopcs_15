@@ -3,13 +3,6 @@
 # This script gracefully stops MCS when it was compiles
 # with SKIP_OAM_INIT=1
 
-systemctl stop mcs-dmlproc
-systemctl stop mcs-ddlproc
-systemctl stop mcs-primproc
-systemctl stop mcs-writeengineserver
-systemctl stop mcs-exemgr
-systemctl stop mcs-controllernode
-systemctl stop mcs-workernode
-systemctl stop mariadb
+systemctl stop mariadb-columnstore
 
 exit 0
