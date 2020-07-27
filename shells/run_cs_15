@@ -67,9 +67,10 @@ rm -rf /var/lib/mysql
 
 cd $MDB_SOURCE_PATH
 if [ $DISTRO = 'bionic' ]; then
-    MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES'
+    MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES -DPRIMPROC_STOPWATCH=1'
     # These flags will be available in 1.5
-    #MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1 -DWITH_DATACONVERT_UT=1 -DWITH_ARITHMETICOPERATOR_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_CSDECIMAL_UT=1 -DWITH_SORTING_COMPARATORS_UT=1"
+    MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1 -DWITH_DATACONVERT_UT=1 -DWITH_ARITHMETICOPERATOR_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_CSDECIMAL_UT=1 -DWITH_SORTING_COMPARATORS_UT=1"
+    MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_PP_SCAN_UT=1"
     cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && \
     make -j $CPUS install
 elif [ $DISTRO = 'centos' ]; then
@@ -82,14 +83,15 @@ if [ $? -ne 0 ]; then
     return 1
 fi
 
-mv /usr/lib/mysql/plugin/ha_columnstore.so /tmp
-mv /usr/lib64/mysql/plugin/ha_columnstore.so /tmp
+mv /usr/lib/mysql/plugin/ha_columnstore.so /tmp/ha_columnstore_1.so
+mv /usr/lib64/mysql/plugin/ha_columnstore.so /tmp/ha_columnstore_2.so
 
 echo 'plugin_maturity=beta' >> /etc/my.cnf.d/columnstore.cnf
 
 /usr/bin/mysql_install_db --rpm --user=mysql
 
-mv /tmp/ha_columnstore.so /usr/lib/mysql/plugin/ha_columnstore.so
+mv /tmp/ha_columnstore_1.so /usr/lib/mysql/plugin/ha_columnstore.so
+mv /tmp/ha_columnstore_2.so /usr/lib64/mysql/plugin/ha_columnstore.so
 
 cp -r /etc/mysql/conf.d /etc/my.cnf.d/
 cp $MDB_SOURCE_PATH/storage/columnstore/columnstore/oam/etc/Columnstore.xml /etc/columnstore/Columnstore.xml
@@ -113,6 +115,8 @@ if [ $DISTRO = 'bionic' ]; then
 
     ldconfig    
     columnstore-post-install
+
+    /usr/sbin/install_mcs_mysql.sh
 
     mkdir /var/lib/columnstore/data1
     mkdir /var/lib/columnstore/data1/systemFiles
@@ -141,6 +145,7 @@ elif [ $DISTRO = 'centos' ]; then
  
     columnstore-post-install
 
+    /usr/sbin/install_mcs_mysql.sh
 fi
 
 
