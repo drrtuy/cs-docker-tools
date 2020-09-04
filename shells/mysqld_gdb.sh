@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gdb /usr/bin/mysqld --tui -p $(pidof mysqld)
+gdb /usr/bin/mariadbd --tui -p $(pidof mariadbd)

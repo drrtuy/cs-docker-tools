@@ -1,3 +1,0 @@
-#!/bin/sh
-
-gdb /usr/local/mariadb/columnstore/bin/workernode --tui -p $(pgrep -f /usr/local/mariadb/columnstore/bin/workernode)
