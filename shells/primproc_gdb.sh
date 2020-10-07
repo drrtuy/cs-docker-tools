@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gdb /usr/bin/PrimProc --tui -p $(pidof PrimProc)
+gdb /usr/bin/PrimProc -p $(pidof PrimProc)
