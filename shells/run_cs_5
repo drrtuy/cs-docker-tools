@@ -139,7 +139,7 @@ if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
 
     ldconfig    
     columnstore-post-install
-    chown -R mysql:mysql /data/columnstore/*
+#    chown -R mysql:mysql /data/columnstore/*
 
     /usr/sbin/install_mcs_mysql.sh
 
