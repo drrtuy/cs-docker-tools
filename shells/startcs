@@ -71,11 +71,11 @@ $MCS_INSTALL_BIN/DDLProc &> $LOG_PREFIX/ddlproc.log &
 echo DDLProc PID = $!
 touch $LOG_PREFIX/mysqld_err.log
 chown mysql.mysql $LOG_PREFIX/mysqld_err.log
-if [ -x $MCS_INSTALL_PATH/mysql/bin/mysqld ]; then
-    $MCS_INSTALL_PATH/mysql/bin/mysqld --defaults-extra-file=/etc/my.cnf.d/columnstore.cnf --basedir=/usr/local/mariadb/columnstore/mysql/  --datadir=/usr/local/mariadb/columnstore/mysql/db --plugin-dir=/usr/local/mariadb/columnstore/mysql/lib/plugin --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --pid-file=/usr/local/mariadb/columnstore/mysql/db/$(hostname).pid --socket=/usr/local/mariadb/columnstore/mysql/lib/mysql/mysql.sock --port=3306 > $LOG_PREFIX/mysqld.log &
-else
-    /usr/sbin/mysqld --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --port=3306 > $LOG_PREFIX/mysqld.log &
-fi
+#if [ -x $MCS_INSTALL_PATH/mysql/bin/mysqld ]; then
+#    $MCS_INSTALL_PATH/mysql/bin/mysqld --defaults-extra-file=/etc/my.cnf.d/columnstore.cnf --basedir=/usr/local/mariadb/columnstore/mysql/  --datadir=/usr/local/mariadb/columnstore/mysql/db --plugin-dir=/usr/local/mariadb/columnstore/mysql/lib/plugin --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --pid-file=/usr/local/mariadb/columnstore/mysql/db/$(hostname).pid --socket=/usr/local/mariadb/columnstore/mysql/lib/mysql/mysql.sock --port=3306 > $LOG_PREFIX/mysqld.log &
+#else
+#    /usr/sbin/mysqld --user=mysql --log-error=$LOG_PREFIX/mysqld_err.log --port=3306 > $LOG_PREFIX/mysqld.log &
+#fi
 sleep 1
 
 exit 0

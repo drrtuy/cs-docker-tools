@@ -29,15 +29,15 @@ fi
 if [ $DISTRO = 'bionic' ]; then
     sudo apt-get -y update
     apt-get -y install build-essential automake libboost-all-dev bison cmake \
-    libncurses5-dev libreadline-dev \
+    libncurses5-dev libaio-dev libsystemd-dev libpcre2-dev \
     libperl-dev libssl-dev libxml2-dev libkrb5-dev flex libpam-dev git \
-    libreadline-dev libsnappy-dev libcurl4-openssl-dev
+    libsnappy-dev libcurl4-openssl-dev
 elif [ $DISTRO = 'focal' ]; then
     sudo apt-get -y update
     apt-get -y install build-essential automake libboost-all-dev bison cmake \
-    libncurses5-dev libreadline-dev \
+    libncurses5-dev libaio-dev libsystemd-dev libpcre2-dev \
     libperl-dev libssl-dev libxml2-dev libkrb5-dev flex libpam-dev git \
-    libreadline-dev libsnappy-dev libcurl4-openssl-dev
+    libsnappy-dev libcurl4-openssl-dev
 elif [ $DISTRO = 'centos' ]; then
     yum -y install epel-release \
     && yum -y groupinstall "Development Tools" \
@@ -86,7 +86,7 @@ rm -rf /var/lib/mysql
 cd $MDB_SOURCE_PATH
 if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
     #MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_TOKUDB=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_MROONGA=NO -DPLUGIN_GSSAPI=NO -DWITH_MARIABACKUP=NO -DDEB=bionic -DPLUGIN_COLUMNSTORE=YES'
-    MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_COLUMNSTORE=YES -DPLUGIN_MROONGA=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_TOKUDB=NO -DPLUGIN_CONNECT=YES -DPLUGIN_SPIDER=NO -DPLUGIN_OQGRAPH=NO -DPLUGIN_SPHINX=NO -DBUILD_CONFIG=mysql_release -DWITH_WSREP=OFF -DWITH_SSL=system -DDEB=bionic'
+    MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_COLUMNSTORE=YES -DPLUGIN_MROONGA=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_TOKUDB=NO -DPLUGIN_CONNECT=NO -DPLUGIN_SPIDER=NO -DPLUGIN_OQGRAPH=NO -DPLUGIN_SPHINX=NO -DBUILD_CONFIG=mysql_release -DWITH_WSREP=OFF -DWITH_SSL=system -DDEB=bionic'
     # These flags will be available in 1.5
     #MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1 -DWITH_DATACONVERT_UT=1 -DWITH_ARITHMETICOPERATOR_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_CSDECIMAL_UT=1 -DWITH_SORTING_COMPARATORS_UT=1"
     #MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_PP_SCAN_UT=1"
@@ -105,7 +105,6 @@ fi
 mv /usr/lib/mysql/plugin/ha_columnstore.so /tmp/ha_columnstore_1.so
 mv /usr/lib64/mysql/plugin/ha_columnstore.so /tmp/ha_columnstore_2.so
 
-echo 'plugin_maturity=beta' >> /etc/my.cnf.d/columnstore.cnf
 
 /usr/bin/mysql_install_db --rpm --user=mysql
 
@@ -128,6 +127,7 @@ if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
     systemctl daemon-reload
     rm -f /etc/mysql/my.cnf
     cp -r /etc/mysql/conf.d/ /etc/my.cnf.d
+    cp -rp /etc/mysql/mariadb.conf.d/ /etc/my.cnf.d
     mkdir /var/lib/columnstore/data1
     mkdir /var/lib/columnstore/data1/systemFiles
     mkdir /var/lib/columnstore/data1/systemFiles/dbrm
