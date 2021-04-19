@@ -6,9 +6,9 @@
 # The script presumes that server's source code is two directories
 # above the MCS engine source.
 
-#MDB_BUILD_TYPE=relWithDebInfo
+MDB_BUILD_TYPE=relWithDebInfo
 #MDB_BUILD_TYPE=release
-MDB_BUILD_TYPE=debug
+#MDB_BUILD_TYPE=debug
 #BUILD_TYPE=debug
 DISTRO=$1
 MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
@@ -143,7 +143,7 @@ if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
 
     /usr/sbin/install_mcs_mysql.sh
 
-    chown -R mysql:mysql /var/log/mariadb/ 
+    chown -R syslog.syslog /var/log/mariadb/ 
     chmod 777 /var/log/mariadb/ 
     chmod 777 /var/log/mariadb/columnstore 
 

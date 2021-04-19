@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gdb /usr/local/mariadb/columnstore/bin/controllernode --tui -p $(pgrep -f /usr/local/mariadb/columnstore/bin/controllernode)
+gdb /usr/local/mariadb/columnstore/bin/controllernode  -p $(pgrep -f /usr/local/mariadb/columnstore/bin/controllernode)

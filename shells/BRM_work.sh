@@ -1,3 +1,3 @@
 #!/bin/sh
 
-gdb /usr/bin/workernode --tui -p $(pgrep -f /usr/bin/workernode)
+gdb /usr/bin/workernode  -p $(pgrep -f /usr/bin/workernode)
