@@ -6,11 +6,12 @@
 # The script presumes that server's source code is two directories
 # above the MCS engine source.
 
-MDB_BUILD_TYPE=relWithDebInfo
+DISTRO=$1
+MDB_BUILD_TYPE=$2
+#MDB_BUILD_TYPE=relWithDebInfo
 #MDB_BUILD_TYPE=release
 #MDB_BUILD_TYPE=debug
 #BUILD_TYPE=debug
-DISTRO=$1
 MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
 MDB_SOURCE_PATH=/data/mdb-server
 MCS_SOURCE_PATH=$MDB_SOURCE_PATH/storage/columnstore

@@ -78,9 +78,9 @@ void generator(params_t* params)
             //edx_print_double(rand()%RAND_MAX_LOCAL);
             edx_print_ui64(rand()%RAND_MAX_LOCAL); 
             //edx_print_ui64(i); 
-            //edx_print_char('|');
-            //edx_print_char('a' + i % 20);
-            //edx_print("some_row_goes_here_another Row goes there. This is excelent.");
+            edx_print_char('|');
+            edx_print_char('a' + i % 20);
+            edx_print("some_row_goes_here_another Row goes there. This is excelent.");
             //edx_print_char('|');
         }
         edx_println_char('|');
