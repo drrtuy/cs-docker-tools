@@ -13,3 +13,5 @@ project(import-data-generator)
 # Disable format-truncation since this triggers in mcsapi_types for something that isn't a problem
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -Wformat -Wformat-security -fstack-protector-all -fstack-check -Wno-format-truncation -Wno-unused-variable -Wno-unused-parameter -fno-omit-frame-pointer -g")
 add_executable(generator edx-io.c generator.c)
+
+add_executable(em_generator em_generator.cpp)
