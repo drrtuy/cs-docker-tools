@@ -5,6 +5,8 @@
 # development. 
 # The script presumes that server's source code is two directories
 # above the MCS engine source.
+# This script is to be run under root.
+
 
 DISTRO=$1
 MDB_BUILD_TYPE=$2
@@ -16,7 +18,7 @@ MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
 MDB_SOURCE_PATH=/data/mdb-server
 MCS_SOURCE_PATH=$MDB_SOURCE_PATH/storage/columnstore
 MCS_CONFIG_DIR=/etc/columnstore
-$MCS_SCRIPTS_REPO_PREFIX/shells/stopcs_15
+$MCS_SCRIPTS_REPO_PREFIX/shells/stopmcs
 MDB_GIT_URL=https://github.com/MariaDB/server.git
 MCS_GIT_URL=https://github.com/mariadb-corporation/mariadb-columnstore-engine.git
 MDB_GIT_TAG=10.5
@@ -60,7 +62,9 @@ if [ ! -d $MCS_CONFIG_DIR ]; then
 fi
 
 if [ -z "$(grep mysql /etc/passwd)" ]; then
-    echo "You need to manually add mysql user into /etc/passwd, e.g. mysql:x:999:999:mysql:/var/lib/mysql:/bin/bash"
+    #echo "You need to manually add mysql user into /etc/passwd, e.g. mysql:x:999:999:mysql:/var/lib/mysql:/bin/bash"
+    echo "Adding user mysql into /etc/passwd"
+    useradd -r -U mysql -d /var/lib/mysql
     exit 1
 fi
 
@@ -90,7 +94,7 @@ if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
     MDB_CMAKE_FLAGS='-DWITH_SYSTEMD=yes -DPLUGIN_COLUMNSTORE=YES -DPLUGIN_MROONGA=NO -DPLUGIN_ROCKSDB=NO -DPLUGIN_TOKUDB=NO -DPLUGIN_CONNECT=NO -DPLUGIN_SPIDER=NO -DPLUGIN_OQGRAPH=NO -DPLUGIN_SPHINX=NO -DBUILD_CONFIG=mysql_release -DWITH_WSREP=OFF -DWITH_SSL=system -DDEB=bionic'
     # These flags will be available in 1.5
     #MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_GTEST=1 -DWITH_ROWGROUP_UT=1 -DWITH_DATACONVERT_UT=1 -DWITH_ARITHMETICOPERATOR_UT=1 -DWITH_ORDERBY_UT=1 -DWITH_CSDECIMAL_UT=1 -DWITH_SORTING_COMPARATORS_UT=1"
-    MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_GTEST=1 -DWITH_UNITTESTS=YES -DWITH_MICROBENCHMARKS=YES -DWITH_BRM_UT=YES"
+    MDB_CMAKE_FLAGS="${MDB_CMAKE_FLAGS} -DWITH_MICROBENCHMARKS=YES -DWITH_BRM_UT=YES" #-DWITH_GTEST=1 -DWITH_UNITTESTS=YES
     cmake . -DCMAKE_BUILD_TYPE=$MDB_BUILD_TYPE ${MDB_CMAKE_FLAGS} && \
     make -j $CPUS install
 elif [ $DISTRO = 'centos' ]; then
@@ -134,9 +138,10 @@ if [[ "$DISTRO" = 'bionic' || "$DISTRO" = 'focal' ]]; then
     mkdir /var/lib/columnstore/data1/systemFiles/dbrm
     chown -R mysql:mysql /var/lib/mysql
     chown -R mysql:mysql /var/lib/mysql
-    chown -R mysql:mysql /data/columnstore/*
+    #chown -R mysql:mysql /data/columnstore/*
     chown -R mysql.mysql /var/run/mysqld 
     chmod +x /usr/bin/mariadb*
+    cp /etc/my.cnf.d/mariadb.conf.d/columnstore.cnf /etc/my.cnf.d/
 
     ldconfig    
     columnstore-post-install
