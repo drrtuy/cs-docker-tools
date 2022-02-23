@@ -20,12 +20,7 @@ MCS_INSTALL_PATH=/usr/local/mariadb/columnstore
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)
 
-# Script
-if [ -z $MCS_SC_ID ]; then
-    $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs 4
-else
-    $MCS_SCRIPTS_REPO_PREFIX/shells/stopcs
-fi
+systemctl stop mariadb-columnstore
 
 # Backup the config file
 if [ $MCS_SC_ID -eq 1 -o $MCS_SC_ID -eq 2 ] ; then
@@ -43,6 +38,6 @@ else
 fi
 
 # Script
-$MCS_SCRIPTS_REPO_PREFIX/shells/startcs 4
+systemctl start mariadb-columnstore
 
 #popd
