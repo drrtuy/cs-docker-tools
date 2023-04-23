@@ -8,9 +8,9 @@
 
 SKIP_RESTART=$1
 
-MCS_SOURCE_PATH=/data/mdb-server/storage/columnstore
+MCS_SOURCE_PATH=/git/mdb-server/storage/columnstore
 
-MCS_SCRIPTS_REPO_PREFIX=/data/cs-docker-tools
+MCS_SCRIPTS_REPO_PREFIX=/git/cs-docker-tools
 MCS_INSTALL_PATH=/usr/local/mariadb/columnstore
 TMP_PATH=/tmp
 CPUS=$(getconf _NPROCESSORS_ONLN)

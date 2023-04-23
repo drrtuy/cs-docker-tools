@@ -1,66 +1,74 @@
 version: "3"
 services:
   dev:
-    image: ubuntu:xenial
+    image: ubuntu:focal
     cap_add:
         - SYS_PTRACE
     environment:
         - USER=root
+        - DISPLAY=:0
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
       - gitlocal:/gitlocal
+      - /tmp/.X11-unix:/tmp/.X11-unix
     entrypoint:
       - /scripts/idle.sh 
   dev1:
-#    image: jr/column_dev
-    image: jr/coldev-u18
+    image: ubuntu:22.04
+    privileged: true
     cap_add:
         - SYS_PTRACE
     ports:
         - 3308:3306
     environment:
         - USER=root
+        - DISPLAY=:0
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw # sda1
-      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/ext:rw # sda2
+      - /tmp/.X11-unix:/tmp/.X11-unix
     entrypoint:
       - /scripts/idle.sh 
   dev2:
-    image: jr/coldev-u18
+    image: ubuntu:22.04
     privileged: true
     cap_add:
         - SYS_PTRACE
     environment:
         - USER=root
+        - DISPLAY=:0
+    volumes:
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a:/external:rw # sda1
-      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de:/ext:rw # sda2
+      - /tmp/.X11-unix:/tmp/.X11-unix
     entrypoint:
       - /scripts/idle.sh 
     ports:
-      - 3307:3306
+#      - 3307:3306
+#      - 8443:443
+      - 8081:80
+#      - 8082:8080
+#      - 2560:2560
   dev3:
-    image: jr/coldev-u18
+    image: coldev-ubuntu22
+    privileged: true
     cap_add:
         - SYS_PTRACE
     environment:
         - USER=root
+        - DISPLAY=:0
     volumes:
       - /home/drrtuy/git:/git:rw
       - /home/drrtuy/docker:/docker:rw
       - /home/drrtuy/git/cs-docker-tools/shells:/scripts:ro
-      - /run/media/drrtuy/5c54b646-c0c2-4fe0-b878-a43796d1eb6a1:/external:rw # sda1
-      - /run/media/drrtuy/9756e9a5-f0db-460a-92b8-d07c119d23de1:/ext:rw # sda2
+      - /tmp/.X11-unix:/tmp/.X11-unix
     entrypoint:
-      - /scripts/idle.sh 
+      - systemd
   compiler:
     image: jr/colcomp
     cap_add:
@@ -74,7 +82,7 @@ services:
     entrypoint:
       - /scripts/idle.sh 
   dev4:
-    image: jr/coldev-centos
+    image: drrtuy/coldev-centos
 #    image: jr/column_dev
     cap_add:
         - SYS_PTRACE
@@ -88,7 +96,7 @@ services:
     entrypoint:
       - /scripts/idle.sh
   dev5:
-    image: jr/coldev-u16
+    image: drrtuy/coldev-u16
     cap_add:
         - SYS_PTRACE
     environment:
@@ -101,7 +109,7 @@ services:
     entrypoint:
       - /scripts/idle.sh
   dev6:
-    image: jr/coldev-deb9
+    image: drrtuy/coldev-deb9
     cap_add:
         - SYS_PTRACE
     environment:
